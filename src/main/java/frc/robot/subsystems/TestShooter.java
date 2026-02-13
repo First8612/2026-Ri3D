@@ -19,14 +19,16 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.utils.TargetTracker;
 
-
 public class TestShooter extends SubsystemBase{
     TalonFX shootMotor = new TalonFX(41);
     TalonFX hoodMotor = new TalonFX(42);
     TalonFX feedMotor = new TalonFX(43);
     Boolean isAiming = false;
     double flywheelSpeedGoal = 0;
-    double hoodGoal = 0; //number to get to when pressing button
+    double hoodGoal = 0.6; //number to get to when pressing button
+    int hoodGoalIdx = 3;
+    double[] hoodPresets = {0, 0.2, 0.4, 0.6, 0.8};
+    double currHoodGoal = 0; //number used w/ PID
     private final Debouncer flywheelReadyDebounce = new Debouncer(0.5, DebounceType.kRising);
     private TargetTracker targetTracker;
 
@@ -100,6 +102,16 @@ public class TestShooter extends SubsystemBase{
         return true;
     }
 
+    public void cycleHoodRight() {
+        hoodGoalIdx = (hoodGoalIdx + hoodPresets.length + 1) % hoodPresets.length;
+        hoodGoal = hoodPresets[hoodGoalIdx];
+    }
+
+    public void cycleHoodLeft() {
+        hoodGoalIdx = (hoodGoalIdx + hoodPresets.length - 1) % hoodPresets.length;
+        hoodGoal = hoodPresets[hoodGoalIdx];
+    }
+
     public void spinUp(double speed) {
         flywheelSpeedGoal = speed;
     }
@@ -127,17 +139,17 @@ public class TestShooter extends SubsystemBase{
 
     @Override
     public void periodic() {
-        hoodGoal = 0;
+        currHoodGoal = 0;
         flywheelSpeedGoal = 0;
         if (isAiming) {
             var distance = targetTracker.getRobotToTargetTranslation().getNorm();
             // TODO: fancy math/algorithm here
 
-            hoodGoal = 0.75;
+            currHoodGoal = hoodGoal;
             flywheelSpeedGoal = 50; // max 100rps
         }
 
-        hoodMotor.setControl(new PositionVoltage(0).withSlot(0).withPosition(hoodGoal));
+        hoodMotor.setControl(new PositionVoltage(0).withSlot(0).withPosition(currHoodGoal));
         shootMotor.setControl(new VelocityVoltage(flywheelSpeedGoal).withSlot(0));
 
         SmartDashboard.putBoolean("Shooter/isAiming", isAiming);
