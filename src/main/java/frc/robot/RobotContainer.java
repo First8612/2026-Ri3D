@@ -6,16 +6,12 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
 
-import java.time.Instant;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
-import com.pathplanner.lib.commands.PathPlannerAuto;
-
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -34,7 +30,6 @@ import frc.robot.subsystems.TestShooter;
 import frc.robot.subsystems.Vision;
 import frc.robot.subsystems.FakeShooter;
 import frc.robot.subsystems.Storage;
-
 import frc.robot.utils.TargetTracker;
 
 public class RobotContainer {
@@ -112,7 +107,7 @@ public class RobotContainer {
         // ));
         //joystick.x().whileTrue(driveAndFaceTarget);
 
-        joystick.b().whileTrue(new RunCommand(() -> testShooter.spinUp(-1)));
+        joystick.b().whileTrue(new RunCommand(() -> testShooter.warmUp()));
         joystick.y().whileTrue(new RunCommand(() -> testShooter.inFeed()));
         //joystick.y().onFalse(new InstantCommand(() -> testShooter.stop()));
         joystick.b().onFalse(new InstantCommand(() -> testShooter.stop()));
