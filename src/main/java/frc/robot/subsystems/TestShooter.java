@@ -34,10 +34,12 @@ public class TestShooter extends SubsystemBase{
     double[] hoodPresets = {0, 0.2, 0.4, 0.6, 0.8};
     //For aiming (pseudocode)
     //List of limelight distances + hood poses + shooter speed
-    //TODO: FURTHEST IS 5.5!!!! (& 2.7)
     AimData[] shootCalc = { new AimData(0.0, 0.0, 49.0, 1.0),
                             new AimData(1.2, 0.0, 49.0, 1.0),
-                            new AimData(4.2, 0.2, 52.5, 1.0)};
+                            new AimData(2.7, 0.1, 46.0, 1.0),
+                            new AimData(4.2, 0.2, 52.5, 1.0),
+                            new AimData(5.6, 0.3, 58, 1.0),
+                            new AimData(200, 0.3, 58, 1.0)};
 
     double currHoodGoal = 0; //number used w/ PID
     private final Debouncer flywheelReadyDebounce = new Debouncer(0.07, DebounceType.kRising);
@@ -177,10 +179,11 @@ public class TestShooter extends SubsystemBase{
                 }
             }
             // TODO: change aiming from hardcoded to calculated
-            // currHoodGoal = setAmounts.getHood();
-            // flywheelSpeedGoal = setAmounts.getSpeed();
-            currHoodGoal = hoodGoal;
-            flywheelSpeedGoal = 52.5; // max 100rps
+            currHoodGoal = setAmounts.getHood();
+            flywheelSpeedGoal = setAmounts.getSpeed();
+            SmartDashboard.putNumber("Shooter/speedGoal", flywheelSpeedGoal);
+            // currHoodGoal = hoodGoal;
+            // flywheelSpeedGoal = 52.5; // max 100rps
         }
 
         hoodMotor.setControl(new PositionVoltage(0).withSlot(0).withPosition(currHoodGoal));
@@ -212,7 +215,7 @@ public class TestShooter extends SubsystemBase{
         SmartDashboard.putNumber("Shooter/HoodPreset", hoodGoal);
         SmartDashboard.putNumber("Shooter/ShootSpeed", shootMotor.getVelocity().getValueAsDouble());
         SmartDashboard.putBoolean("Shooter/isAiming", isAiming);
-        SmartDashboard.putNumber("Shooter/shootActual", shootMotor.getVelocity().getValueAsDouble());
+        SmartDashboard.putNumber("Shooter/hoodActual", hoodMotor.getPosition().getValueAsDouble());
         SmartDashboard.putBoolean("Shooter/hoodReady", hoodReady());
         SmartDashboard.putBoolean("Shooter/flywheelReady", flywheelReady());
         SmartDashboard.putBoolean("Shooter/readyToShoot", readyToShoot());

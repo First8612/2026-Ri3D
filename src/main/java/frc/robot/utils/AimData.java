@@ -7,7 +7,7 @@ public class AimData {
 
     public AimData(double distance, double hoodPos, double shootSpeed, double hangTime) {
         this.distance = distance;
-        this.hoodPos = distance;
+        this.hoodPos = hoodPos;
         this.shootSpeed = shootSpeed;
     }
 

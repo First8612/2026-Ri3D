@@ -11,6 +11,12 @@
           }
         },
         {
+          "type": "named",
+          "data": {
+            "name": "ShootSequence"
+          }
+        },
+        {
           "type": "path",
           "data": {
             "pathName": "Aim to Middle (Left)"
@@ -26,6 +32,12 @@
           "type": "path",
           "data": {
             "pathName": "Middle to Aim2 (Left)"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "ShootSequence"
           }
         },
         {

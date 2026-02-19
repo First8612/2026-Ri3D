@@ -11,6 +11,12 @@
           }
         },
         {
+          "type": "named",
+          "data": {
+            "name": "ShootSequence"
+          }
+        },
+        {
           "type": "path",
           "data": {
             "pathName": "Aim to Climb (Right)"

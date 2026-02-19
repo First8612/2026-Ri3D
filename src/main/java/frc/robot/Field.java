@@ -36,9 +36,9 @@ public class Field {
 
             this.name = name;
             hub = origin.plus(new Transform2d(hubFromOrigin, perspectiveRotation));
-            zone = new Rectangle2d(origin, allianceZoneDepth, fieldWidth)
+            zone = new Rectangle2d(origin, allianceZoneDepth.times(2), fieldWidth)
                 .transformBy(new Transform2d(
-                    new Translation2d(allianceZoneDepth.div(2), fieldWidth.div(2)),
+                    new Translation2d(allianceZoneDepth.times(0), fieldWidth.div(2)),
                     noRotation
                 ));
 

@@ -51,7 +51,8 @@ public class RobotContainer {
 
     private final Telemetry logger = new Telemetry(MaxSpeed);
 
-    private final CommandXboxController joystick = new CommandXboxController(0);
+    private final CommandXboxController joystickDrive = new CommandXboxController(0);
+    private final CommandXboxController joystickOperate = new CommandXboxController(1);
     
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     private final TargetTracker targetTracker = new TargetTracker(drivetrain);
@@ -60,8 +61,8 @@ public class RobotContainer {
     private final TestShooter testShooter = new TestShooter(targetTracker);
     private final Vision vision = new Vision(drivetrain);
 
-    private final DriveAndFaceTargetCommand driveAndFaceTarget = new DriveAndFaceTargetCommand(joystick, drivetrain, targetTracker);
-    private final ShootSequence shoot = new ShootSequence(shooter, storage, targetTracker, joystick, drivetrain);
+    private final DriveAndFaceTargetCommand driveAndFaceTarget = new DriveAndFaceTargetCommand(joystickDrive, drivetrain, targetTracker);
+    private final ShootSequence shoot = new ShootSequence(shooter, storage, targetTracker, joystickOperate, drivetrain);
 
     Intake intake = new Intake();
 
@@ -88,17 +89,18 @@ public class RobotContainer {
         drivetrain.setDefaultCommand(
             // Drivetrain will execute this command periodically
             drivetrain.applyRequest(() ->
-                drive.withVelocityX(-joystick.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
-                    .withVelocityY(-joystick.getLeftX() * MaxSpeed) // Drive left with negative X (left)
-                    .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
+                drive.withVelocityX(-joystickDrive.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
+                    .withVelocityY(-joystickDrive.getLeftX() * MaxSpeed) // Drive left with negative X (left)
+                    .withRotationalRate(-joystickDrive.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
             )
         );
         Supplier<Double> getIntakeSpeed = () -> {
-            return joystick.getRightTriggerAxis()-joystick.getLeftTriggerAxis();
+            return joystickOperate.getRightTriggerAxis()-joystickOperate.getLeftTriggerAxis();
         };
-        joystick.rightTrigger(0.1).or(joystick.leftTrigger(0.1)).whileTrue(new RunCommand(() -> intake.setSpeedRaw(getIntakeSpeed.get())));
-        joystick.rightTrigger(0.1).and(joystick.leftTrigger(0.1)).whileFalse(new RunCommand(() -> intake.stop()));
-        // joystick.b().onTrue(shoot);
+        //TODO: Make intake more intuitive
+        joystickOperate.rightTrigger(0.1).or(joystickOperate.leftTrigger(0.1)).whileTrue(new RunCommand(() -> intake.setSpeedRaw(getIntakeSpeed.get())));
+        joystickOperate.rightTrigger(0.1).and(joystickOperate.leftTrigger(0.1)).whileFalse(new RunCommand(() -> intake.stop()));
+        //  joystick.b().onTrue(shoot);
         // Idle while the robot is disabled. This ensures the configured
         // neutral mode is applied to the drive motors while disabled.
         final var idle = new SwerveRequest.Idle();
@@ -110,26 +112,26 @@ public class RobotContainer {
         // joystick.b().whileTrue(drivetrain.applyRequest(() ->
         //     point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))
         // ));
-        //joystick.x().whileTrue(driveAndFaceTarget);
+        joystickDrive.x().whileTrue(driveAndFaceTarget);
 
-        joystick.b().whileTrue(new RunCommand(() -> testShooter.spinUp(-1)));
-        joystick.y().whileTrue(new RunCommand(() -> testShooter.inFeed()));
+        joystickOperate.b().whileTrue(new RunCommand(() -> testShooter.spinUp(-1)));
+        joystickOperate.y().whileTrue(new RunCommand(() -> testShooter.inFeed()));
         //joystick.y().onFalse(new InstantCommand(() -> testShooter.stop()));
-        joystick.b().onFalse(new InstantCommand(() -> testShooter.stop()));
+        joystickOperate.b().onFalse(new InstantCommand(() -> testShooter.stop()));
         // joystick.b().whileTrue(shoot);
-        joystick.x().whileTrue(Commands.startEnd(testShooter::enableAiming, testShooter::stop, testShooter));
+        joystickOperate.x().whileTrue(Commands.startEnd(testShooter::enableAiming, testShooter::stop, testShooter));
 
         // Run SysId routines when holding back/start and X/Y.
         // Note that each routine should be run exactly once in a single log.
-        joystick.back().and(joystick.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
-        joystick.back().and(joystick.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
-        joystick.start().and(joystick.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
-        joystick.start().and(joystick.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
+        joystickDrive.back().and(joystickDrive.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
+        joystickDrive.back().and(joystickDrive.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
+        joystickDrive.start().and(joystickDrive.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
+        joystickDrive.start().and(joystickDrive.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
-        joystick.povLeft().onTrue(new InstantCommand(() -> testShooter.cycleHoodLeft()));
-        joystick.povRight().onTrue(new InstantCommand(() -> testShooter.cycleHoodRight()));
+        joystickOperate.povLeft().onTrue(new InstantCommand(() -> testShooter.cycleHoodLeft()));
+        joystickOperate.povRight().onTrue(new InstantCommand(() -> testShooter.cycleHoodRight()));
         // Reset the field-centric heading on left bumper press.
-        joystick.leftBumper().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
+        joystickDrive.leftBumper().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
 
         drivetrain.registerTelemetry(logger::telemeterize);
     }
