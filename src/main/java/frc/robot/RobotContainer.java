@@ -62,7 +62,8 @@ public class RobotContainer {
     private final Vision vision = new Vision(drivetrain);
 
     private final DriveAndFaceTargetCommand driveAndFaceTarget = new DriveAndFaceTargetCommand(joystickDrive, drivetrain, targetTracker);
-    private final ShootSequence shoot = new ShootSequence(shooter, storage, targetTracker, joystickOperate, drivetrain);
+    private final ShootSequence shoot = new ShootSequence(testShooter, storage, targetTracker, joystickOperate, drivetrain, false);
+    private final ShootSequence shootSimple = new ShootSequence(testShooter, storage, targetTracker, joystickOperate, drivetrain, true);
 
     Intake intake = new Intake();
 
@@ -114,12 +115,8 @@ public class RobotContainer {
         // ));
         joystickDrive.x().whileTrue(driveAndFaceTarget);
 
-        joystickOperate.b().whileTrue(new RunCommand(() -> testShooter.spinUp(-1)));
-        joystickOperate.y().whileTrue(new RunCommand(() -> testShooter.inFeed()));
-        //joystick.y().onFalse(new InstantCommand(() -> testShooter.stop()));
-        joystickOperate.b().onFalse(new InstantCommand(() -> testShooter.stop()));
-        // joystick.b().whileTrue(shoot);
-        joystickOperate.x().whileTrue(Commands.startEnd(testShooter::enableAiming, testShooter::stop, testShooter));
+        joystickOperate.a().whileTrue(shoot);
+        joystickOperate.b().whileTrue(shootSimple);
 
         // Run SysId routines when holding back/start and X/Y.
         // Note that each routine should be run exactly once in a single log.

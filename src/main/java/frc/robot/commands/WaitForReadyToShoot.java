@@ -3,27 +3,28 @@ package frc.robot.commands;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.subsystems.FakeShooter;
+import frc.robot.subsystems.TestShooter;
 import frc.robot.utils.TargetTracker;
 
 public class WaitForReadyToShoot extends Command {
-    private Debouncer readyDebounce = new Debouncer(.5, DebounceType.kRising);
-    private FakeShooter shooter;
+    private Debouncer yawDebounce = new Debouncer(.5, DebounceType.kRising);
+    private TestShooter shooter;
     private TargetTracker targetTracker;
+    private boolean ignoreYaw;
 
-    public WaitForReadyToShoot(FakeShooter shooter, TargetTracker targetTracker) {
+    public WaitForReadyToShoot(TestShooter shooter, TargetTracker targetTracker, boolean ignoreYaw) {
         super();
         this.shooter = shooter;
         this.targetTracker = targetTracker;
+        this.ignoreYaw = ignoreYaw;
     }
 
     @Override
     public boolean isFinished() {
-        var yawIsReady = Math.abs(targetTracker.getRobotToTargetRotation().getDegrees()) < 5;
+        var yawIsReady = ignoreYaw || yawDebounce.calculate(
+                Math.abs(targetTracker.getRobotToTargetRotation().getDegrees()) < 5);
         var shooterIsReady = shooter.readyToShoot();
-        
-        return readyDebounce.calculate(
-            yawIsReady && shooterIsReady
-        );
+
+        return yawIsReady && shooterIsReady;
     }
 }

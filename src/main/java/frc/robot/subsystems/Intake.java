@@ -5,6 +5,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.PlaceholderCode.FakeEncoder;
 import frc.robot.PlaceholderCode.FakeMotor;
@@ -17,6 +18,12 @@ public class Intake extends SubsystemBase {
     private String extendStatus = "Extended";
     private Timer extendTimer = new Timer();
     private PIDController extendPID = new PIDController(0, 0, 0);
+
+    public Intake() {
+        super();
+        
+        setDefaultCommand(Commands.runOnce(this::stop, this));
+    }
 
     public void in() {
         speed = 0.75;

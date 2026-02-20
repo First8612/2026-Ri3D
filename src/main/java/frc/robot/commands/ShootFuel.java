@@ -1,13 +1,12 @@
 package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.subsystems.FakeShooter;
 import frc.robot.subsystems.TestShooter;
 
 public class ShootFuel extends Command {
-    private FakeShooter shooter;
+    private TestShooter shooter;
 
-    public ShootFuel(FakeShooter shooter) {
+    public ShootFuel(TestShooter shooter) {
         super();
         this.shooter = shooter;
     }
