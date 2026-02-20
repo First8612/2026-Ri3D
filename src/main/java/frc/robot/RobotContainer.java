@@ -34,6 +34,7 @@ import frc.robot.subsystems.TestShooter;
 import frc.robot.subsystems.Vision;
 import frc.robot.subsystems.FakeShooter;
 import frc.robot.subsystems.Storage;
+import edu.wpi.first.cameraserver.*;
 
 import frc.robot.utils.TargetTracker;
 
@@ -71,7 +72,7 @@ public class RobotContainer {
     public RobotContainer() {
         NamedCommands.registerCommand("ShootSequence", shoot);
 
-        
+        CameraServer.startAutomaticCapture();
         configureBindings();
         drivetrain.configureAutoBuilder();
         autonChooser = AutoBuilder.buildAutoChooser("Test Auto 11");
