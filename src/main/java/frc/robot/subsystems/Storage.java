@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.PlaceholderCode.*;
 
@@ -11,6 +12,8 @@ public class Storage extends SubsystemBase{
     public Storage() {
         super();
         //More Init
+
+        setDefaultCommand(Commands.runOnce(this::conveyStop, this));
     }
 
     public void conveyIn() {

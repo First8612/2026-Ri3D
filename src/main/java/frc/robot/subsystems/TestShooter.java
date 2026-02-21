@@ -1,5 +1,8 @@
 package frc.robot.subsystems;
 
+import java.lang.StackWalker.Option;
+import java.util.Optional;
+
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.HardwareLimitSwitchConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
@@ -27,6 +30,7 @@ public class TestShooter extends SubsystemBase{
     TalonFX hoodMotor = new TalonFX(42);
     TalonFX feedMotor = new TalonFX(43);
     Boolean isAiming = false;
+    Optional<Double> aimingDistOveride = Optional.empty();
     double feedDutyCycle = 0;
     double flywheelSpeedGoal = 0;
     double hoodGoal = 0.2; //number to get to when pressing button
@@ -84,6 +88,12 @@ public class TestShooter extends SubsystemBase{
                 .withKP(0)
                 .withKI(0.1)
         );
+
+        setDefaultCommand(Commands.runOnce(this::stop, this));
+
+        SmartDashboard.putData("Shooter/system", this);
+        SmartDashboard.putData("Shooter/shootMotor", shootMotor);
+        SmartDashboard.putData("Shooter/feedMotor", feedMotor);
     }
     
     public void warmup() {
@@ -104,11 +114,19 @@ public class TestShooter extends SubsystemBase{
     public void stop() {
         feedDutyCycle = 0;
         isAiming = false;
+        aimingDistOveride = Optional.empty();
     }
 
     public void enableAiming() {
         isAiming = true;
+        aimingDistOveride = Optional.empty();
     }
+
+    public void enableAiming(double distOverride) {
+        isAiming = true;
+        aimingDistOveride = Optional.of(distOverride);
+    }
+
 
     public boolean readyToShoot() {
         return flywheelReady() && hoodReady();
@@ -167,6 +185,12 @@ public class TestShooter extends SubsystemBase{
         flywheelSpeedGoal = 0;
         if (isAiming) {
             var distance = targetTracker.getRobotToTargetTranslation().getNorm();
+
+            if (aimingDistOveride.isPresent()) {
+                distance = aimingDistOveride.get();
+            }
+
+
             var lerpAmount = 0.0;
             AimData setAmounts = shootCalc[0];
             boolean hasAimed = false;
@@ -220,6 +244,7 @@ public class TestShooter extends SubsystemBase{
         SmartDashboard.putBoolean("Shooter/flywheelReady", flywheelReady());
         SmartDashboard.putBoolean("Shooter/readyToShoot", readyToShoot());
         SmartDashboard.putNumber("Shooter/feedSet", feedMotor.get());
+        SmartDashboard.putNumber("Shooter/feedDutyCycleTarget", feedDutyCycle);
         
     }
 }

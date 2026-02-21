@@ -63,19 +63,20 @@ public class RobotContainer {
     private final Vision vision = new Vision(drivetrain);
 
     private final DriveAndFaceTargetCommand driveAndFaceTarget = new DriveAndFaceTargetCommand(joystickDrive, drivetrain, targetTracker);
-    private final ShootSequence shoot = new ShootSequence(shooter, storage, targetTracker, joystickOperate, drivetrain);
+    private final ShootSequence shoot = new ShootSequence(testShooter, storage, targetTracker, joystickDrive, drivetrain, false);
+    private final ShootSequence shootSimple = new ShootSequence(testShooter, storage, targetTracker, joystickDrive, drivetrain, true);
 
     Intake intake = new Intake();
 
     SendableChooser<Command> autonChooser;
 
     public RobotContainer() {
-        NamedCommands.registerCommand("ShootSequence", shoot);
+        NamedCommands.registerCommand("ShootSequence", shootSimple);
 
         CameraServer.startAutomaticCapture();
         configureBindings();
         drivetrain.configureAutoBuilder();
-        autonChooser = AutoBuilder.buildAutoChooser("Test Auto 11");
+        autonChooser = AutoBuilder.buildAutoChooser("RI3D Auto");
 
         SmartDashboard.putData("Auto Path", autonChooser);
         RobotModeTriggers.autonomous().onTrue(testShooter.getZeroCommand());
@@ -96,11 +97,13 @@ public class RobotContainer {
             )
         );
         Supplier<Double> getIntakeSpeed = () -> {
-            return joystickOperate.getRightTriggerAxis()-joystickOperate.getLeftTriggerAxis();
+            var speed = joystickOperate.getRightTriggerAxis()-joystickOperate.getLeftTriggerAxis();
+            System.out.println(speed);
+            return speed;
         };
         //TODO: Make intake more intuitive
-        joystickOperate.rightTrigger(0.1).or(joystickOperate.leftTrigger(0.1)).whileTrue(new RunCommand(() -> intake.setSpeedRaw(getIntakeSpeed.get())));
-        joystickOperate.rightTrigger(0.1).and(joystickOperate.leftTrigger(0.1)).whileFalse(new RunCommand(() -> intake.stop()));
+        joystickOperate.rightTrigger(0.1).or(joystickOperate.leftTrigger(0.1)).whileTrue(new RunCommand(() -> intake.setSpeedRaw(getIntakeSpeed.get()), intake));
+        joystickOperate.rightTrigger(0.1).and(joystickOperate.leftTrigger(0.1)).whileFalse(new RunCommand(() -> intake.stop(), intake));
         //  joystick.b().onTrue(shoot);
         // Idle while the robot is disabled. This ensures the configured
         // neutral mode is applied to the drive motors while disabled.
@@ -113,15 +116,14 @@ public class RobotContainer {
         // joystick.b().whileTrue(drivetrain.applyRequest(() ->
         //     point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))
         // ));
-        joystickDrive.x().whileTrue(driveAndFaceTarget);
+        joystickDrive.rightBumper().whileTrue(driveAndFaceTarget);
 
-        joystickOperate.b().whileTrue(new RunCommand(() -> testShooter.spinUp(-1)));
+        joystickOperate.a().whileTrue(shoot);
+        joystickOperate.b().whileTrue(shootSimple);
+
+
         joystickOperate.y().whileTrue(new RunCommand(() -> testShooter.inFeed()));
-        //joystick.y().onFalse(new InstantCommand(() -> testShooter.stop()));
-        joystickOperate.b().onFalse(new InstantCommand(() -> testShooter.stop()));
-        // joystick.b().whileTrue(shoot);
         joystickOperate.x().whileTrue(Commands.startEnd(testShooter::enableAiming, testShooter::stop, testShooter));
-
         // Run SysId routines when holding back/start and X/Y.
         // Note that each routine should be run exactly once in a single log.
         joystickDrive.back().and(joystickDrive.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
@@ -134,6 +136,7 @@ public class RobotContainer {
         // Reset the field-centric heading on left bumper press.
         joystickDrive.leftBumper().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
 
+        CameraServer.startAutomaticCapture();
         drivetrain.registerTelemetry(logger::telemeterize);
     }
 
@@ -154,11 +157,14 @@ public class RobotContainer {
         //     // Finally idle for the rest of auton
         //     drivetrain.applyRequest(() -> idle)
         // );
-        return autonChooser.getSelected();
+        var auton = autonChooser.getSelected();
+        auton.addRequirements(drivetrain);
+        return auton;
     }
 
     public void robotPeriodic() {
         Target.periodic(drivetrain.getState().Pose);
+        targetTracker.periodic();
         vision.periodic();
     }
 }
