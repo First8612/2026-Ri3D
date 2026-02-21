@@ -1,16 +1,12 @@
 package frc.robot.subsystems;
 
-import java.lang.StackWalker.Option;
 import java.util.Optional;
-
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
-import com.ctre.phoenix6.configs.HardwareLimitSwitchConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.Slot1Configs;
 import com.ctre.phoenix6.controls.CoastOut;
 import com.ctre.phoenix6.controls.DutyCycleOut;
-import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
@@ -22,6 +18,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.commands.DixieHornCommand;
 import frc.robot.utils.AimData;
 import frc.robot.utils.TargetTracker;
 
@@ -90,6 +87,7 @@ public class TestShooter extends SubsystemBase{
         );
 
         setDefaultCommand(Commands.runOnce(this::stop, this));
+        DixieHornCommand.enrollSubsystemMotors(this, shootMotor, feedMotor);
 
         SmartDashboard.putData("Shooter/system", this);
         SmartDashboard.putData("Shooter/shootMotor", shootMotor);

@@ -2,13 +2,10 @@ package frc.robot.subsystems;
 
 import com.ctre.phoenix6.hardware.TalonFX;
 
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.PlaceholderCode.FakeEncoder;
-import frc.robot.PlaceholderCode.FakeMotor;
+import frc.robot.commands.DixieHornCommand;
 
 public class Intake extends SubsystemBase {
     TalonFX intakeMotor = new TalonFX(40);
@@ -18,6 +15,7 @@ public class Intake extends SubsystemBase {
         super();
         
         setDefaultCommand(Commands.runOnce(this::stop, this));
+        DixieHornCommand.enrollSubsystemMotors(this, intakeMotor);
     }
 
     public void in() {
