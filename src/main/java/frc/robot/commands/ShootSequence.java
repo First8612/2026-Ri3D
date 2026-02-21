@@ -22,14 +22,6 @@ public class ShootSequence extends ParallelCommandGroup {
     ) {
         super();
 
-        if (!unsmart) {
-            addCommands(
-                // retain drive control during
-                new DriveAndFaceTargetCommand(driverController, drivetrain, targetTracker)
-            );
-        }
-
-
         var aimCommand = Commands.runOnce(shooter::enableAiming, shooter);
         if (unsmart) {
             aimCommand = Commands.runOnce(() -> shooter.enableAiming(2.7), shooter);
