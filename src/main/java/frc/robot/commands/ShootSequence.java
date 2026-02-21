@@ -35,15 +35,15 @@ public class ShootSequence extends ParallelCommandGroup {
             aimCommand = Commands.runOnce(() -> shooter.enableAiming(2.7), shooter);
         }
 
-        var finishShootingDeadline =                 
-            Commands.sequence(
-                new StorageConveyUntilEmpty(storage),
-                Commands.waitSeconds(1)
-            );
+        // var finishShootingDeadline =                 
+        //     Commands.sequence(
+        //         new StorageConveyUntilEmpty(storage),
+        //         Commands.waitSeconds(1)
+        //     );
         // if (unsmart) {
         //     finishShootingDeadline = Commands.waitSeconds(10);
         // }
-        finishShootingDeadline = Commands.waitSeconds(10);
+        var finishShootingDeadline = Commands.waitSeconds(10);
 
 
         var mainSequence = new SequentialCommandGroup();

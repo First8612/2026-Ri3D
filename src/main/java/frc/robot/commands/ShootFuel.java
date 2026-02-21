@@ -9,10 +9,13 @@ public class ShootFuel extends Command {
     public ShootFuel(TestShooter shooter) {
         super();
         this.shooter = shooter;
+
+        addRequirements(shooter);
     }
 
     @Override
     public void initialize() {
+        shooter.enableAiming();
         shooter.inFeed();
     }
 

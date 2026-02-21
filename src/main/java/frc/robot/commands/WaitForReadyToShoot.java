@@ -22,7 +22,7 @@ public class WaitForReadyToShoot extends Command {
     @Override
     public boolean isFinished() {
         var yawIsReady = ignoreYaw || yawDebounce.calculate(
-                Math.abs(targetTracker.getRobotToTargetRotation().getDegrees()) < 5);
+                Math.abs(targetTracker.getRobotToTargetRelativeRotation().getDegrees()) < 2);
         var shooterIsReady = shooter.readyToShoot();
 
         return yawIsReady && shooterIsReady;

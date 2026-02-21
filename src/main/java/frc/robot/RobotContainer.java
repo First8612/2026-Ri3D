@@ -63,8 +63,8 @@ public class RobotContainer {
     private final Vision vision = new Vision(drivetrain);
 
     private final DriveAndFaceTargetCommand driveAndFaceTarget = new DriveAndFaceTargetCommand(joystickDrive, drivetrain, targetTracker);
-    private final ShootSequence shoot = new ShootSequence(testShooter, storage, targetTracker, joystickOperate, drivetrain, false);
-    private final ShootSequence shootSimple = new ShootSequence(testShooter, storage, targetTracker, joystickOperate, drivetrain, true);
+    private final ShootSequence shoot = new ShootSequence(testShooter, storage, targetTracker, joystickDrive, drivetrain, false);
+    private final ShootSequence shootSimple = new ShootSequence(testShooter, storage, targetTracker, joystickDrive, drivetrain, true);
 
     Intake intake = new Intake();
 
@@ -162,6 +162,7 @@ public class RobotContainer {
 
     public void robotPeriodic() {
         Target.periodic(drivetrain.getState().Pose);
+        targetTracker.periodic();
         vision.periodic();
     }
 }

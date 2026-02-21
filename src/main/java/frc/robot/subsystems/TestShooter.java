@@ -90,6 +90,8 @@ public class TestShooter extends SubsystemBase{
         );
 
         setDefaultCommand(Commands.runOnce(this::stop, this));
+
+        SmartDashboard.putData("Shooter/system", this);
         SmartDashboard.putData("Shooter/shootMotor", shootMotor);
         SmartDashboard.putData("Shooter/feedMotor", feedMotor);
     }
@@ -242,6 +244,7 @@ public class TestShooter extends SubsystemBase{
         SmartDashboard.putBoolean("Shooter/flywheelReady", flywheelReady());
         SmartDashboard.putBoolean("Shooter/readyToShoot", readyToShoot());
         SmartDashboard.putNumber("Shooter/feedSet", feedMotor.get());
+        SmartDashboard.putNumber("Shooter/feedDutyCycleTarget", feedDutyCycle);
         
     }
 }
