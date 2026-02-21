@@ -30,7 +30,7 @@ public class TestShooter extends SubsystemBase{
     TalonFX hoodMotor = new TalonFX(42);
     TalonFX feedMotor = new TalonFX(43);
     Boolean isAiming = false;
-    Optional<Double> aimingDistOveride = null;
+    Optional<Double> aimingDistOveride = Optional.empty();
     double feedDutyCycle = 0;
     double flywheelSpeedGoal = 0;
     double hoodGoal = 0.2; //number to get to when pressing button
@@ -90,6 +90,8 @@ public class TestShooter extends SubsystemBase{
         );
 
         setDefaultCommand(Commands.runOnce(this::stop, this));
+        SmartDashboard.putData("Shooter/shootMotor", shootMotor);
+        SmartDashboard.putData("Shooter/feedMotor", feedMotor);
     }
     
     public void warmup() {
@@ -110,12 +112,12 @@ public class TestShooter extends SubsystemBase{
     public void stop() {
         feedDutyCycle = 0;
         isAiming = false;
-        aimingDistOveride = null;
+        aimingDistOveride = Optional.empty();
     }
 
     public void enableAiming() {
         isAiming = true;
-        aimingDistOveride = null;
+        aimingDistOveride = Optional.empty();
     }
 
     public void enableAiming(double distOverride) {

@@ -20,10 +20,14 @@ public class ShootSequence extends ParallelCommandGroup {
         CommandSwerveDrivetrain drivetrain,
         boolean unsmart
     ) {
-        super(
-            // retain drive control during
-            new DriveAndFaceTargetCommand(driverController, drivetrain, targetTracker)
-        );
+        super();
+
+        if (!unsmart) {
+            addCommands(
+                // retain drive control during
+                new DriveAndFaceTargetCommand(driverController, drivetrain, targetTracker)
+            );
+        }
 
 
         var aimCommand = Commands.runOnce(shooter::enableAiming, shooter);
@@ -36,9 +40,11 @@ public class ShootSequence extends ParallelCommandGroup {
                 new StorageConveyUntilEmpty(storage),
                 Commands.waitSeconds(1)
             );
-        if (unsmart) {
-            finishShootingDeadline = Commands.waitSeconds(10);
-        }
+        // if (unsmart) {
+        //     finishShootingDeadline = Commands.waitSeconds(10);
+        // }
+        finishShootingDeadline = Commands.waitSeconds(10);
+
 
         var mainSequence = new SequentialCommandGroup();
         mainSequence.addCommands(

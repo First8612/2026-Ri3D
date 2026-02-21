@@ -34,6 +34,7 @@ import frc.robot.subsystems.TestShooter;
 import frc.robot.subsystems.Vision;
 import frc.robot.subsystems.FakeShooter;
 import frc.robot.subsystems.Storage;
+import edu.wpi.first.cameraserver.*;
 
 import frc.robot.utils.TargetTracker;
 
@@ -96,11 +97,13 @@ public class RobotContainer {
             )
         );
         Supplier<Double> getIntakeSpeed = () -> {
-            return joystickOperate.getRightTriggerAxis()-joystickOperate.getLeftTriggerAxis();
+            var speed = joystickOperate.getRightTriggerAxis()-joystickOperate.getLeftTriggerAxis();
+            System.out.println(speed);
+            return speed;
         };
         //TODO: Make intake more intuitive
-        joystickOperate.rightTrigger(0.1).or(joystickOperate.leftTrigger(0.1)).whileTrue(new RunCommand(() -> intake.setSpeedRaw(getIntakeSpeed.get())));
-        joystickOperate.rightTrigger(0.1).and(joystickOperate.leftTrigger(0.1)).whileFalse(new RunCommand(() -> intake.stop()));
+        joystickOperate.rightTrigger(0.1).or(joystickOperate.leftTrigger(0.1)).whileTrue(new RunCommand(() -> intake.setSpeedRaw(getIntakeSpeed.get()), intake));
+        joystickOperate.rightTrigger(0.1).and(joystickOperate.leftTrigger(0.1)).whileFalse(new RunCommand(() -> intake.stop(), intake));
         //  joystick.b().onTrue(shoot);
         // Idle while the robot is disabled. This ensures the configured
         // neutral mode is applied to the drive motors while disabled.
@@ -118,6 +121,9 @@ public class RobotContainer {
         joystickOperate.a().whileTrue(shoot);
         joystickOperate.b().whileTrue(shootSimple);
 
+
+        joystickOperate.y().whileTrue(new RunCommand(() -> testShooter.inFeed()));
+        joystickOperate.x().whileTrue(Commands.startEnd(testShooter::enableAiming, testShooter::stop, testShooter));
         // Run SysId routines when holding back/start and X/Y.
         // Note that each routine should be run exactly once in a single log.
         joystickDrive.back().and(joystickDrive.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
@@ -130,6 +136,7 @@ public class RobotContainer {
         // Reset the field-centric heading on left bumper press.
         joystickDrive.leftBumper().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
 
+        CameraServer.startAutomaticCapture();
         drivetrain.registerTelemetry(logger::telemeterize);
     }
 
