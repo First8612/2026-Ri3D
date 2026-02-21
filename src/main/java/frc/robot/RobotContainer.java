@@ -71,12 +71,12 @@ public class RobotContainer {
     SendableChooser<Command> autonChooser;
 
     public RobotContainer() {
-        NamedCommands.registerCommand("ShootSequence", shoot);
+        NamedCommands.registerCommand("ShootSequence", shootSimple);
 
         
         configureBindings();
         drivetrain.configureAutoBuilder();
-        autonChooser = AutoBuilder.buildAutoChooser("Test Auto 11");
+        autonChooser = AutoBuilder.buildAutoChooser("RI3D Auto");
 
         SmartDashboard.putData("Auto Path", autonChooser);
         RobotModeTriggers.autonomous().onTrue(testShooter.getZeroCommand());
@@ -116,7 +116,7 @@ public class RobotContainer {
         // joystick.b().whileTrue(drivetrain.applyRequest(() ->
         //     point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))
         // ));
-        joystickDrive.x().whileTrue(driveAndFaceTarget);
+        joystickDrive.rightBumper().whileTrue(driveAndFaceTarget);
 
         joystickOperate.a().whileTrue(shoot);
         joystickOperate.b().whileTrue(shootSimple);
@@ -157,7 +157,9 @@ public class RobotContainer {
         //     // Finally idle for the rest of auton
         //     drivetrain.applyRequest(() -> idle)
         // );
-        return autonChooser.getSelected();
+        var auton = autonChooser.getSelected();
+        auton.addRequirements(drivetrain);
+        return auton;
     }
 
     public void robotPeriodic() {
