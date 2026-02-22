@@ -74,8 +74,8 @@ public class TestShooter extends SubsystemBase{
         shootMotor.getConfigurator().apply(
             new Slot0Configs()
                 // TODO: still iterating on what these values should be
-                .withKV(.12) // this seems right
-                .withKP(0.5)
+                .withKV(.125) // this seems right
+                .withKP(.6)
                 .withKI(0)
                 .withKD(0)
                 
