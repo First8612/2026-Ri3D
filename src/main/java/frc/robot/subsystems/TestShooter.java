@@ -74,31 +74,24 @@ public class TestShooter extends SubsystemBase{
         shootMotor.getConfigurator().apply(
             new Slot0Configs()
                 // TODO: still iterating on what these values should be
-                .withKV(.24) // this seems right
-                .withKP(0)
+                .withKV(.12) // this seems right
+                .withKP(0.5)
                 .withKI(0)
+                .withKD(0)
                 
-        );
-        shootMotor.getConfigurator().apply(
-            new Slot1Configs()
-                .withKV(.13)
-                .withKP(0)
-                .withKI(0.1)
         );
 
         setDefaultCommand(Commands.runOnce(this::stop, this));
         DixieHornCommand.enrollSubsystemMotors(this, shootMotor, feedMotor);
 
         SmartDashboard.putData("Shooter/system", this);
-        SmartDashboard.putData("Shooter/shootMotor", shootMotor);
-        SmartDashboard.putData("Shooter/feedMotor", feedMotor);
     }
     
     public void warmup() {
     }
     
     public void inFeed() {
-        feedDutyCycle = 0.25;
+        feedDutyCycle = 0.5;
     }
 
     public void backFeed() {
@@ -134,7 +127,7 @@ public class TestShooter extends SubsystemBase{
         if (flywheelSpeedGoal == 0) return false;
 
         return flywheelReadyDebounce.calculate(
-            Math.abs(Math.abs(flywheelSpeedGoal - shootMotor.getVelocity().getValueAsDouble())) < 2.5
+            Math.abs(flywheelSpeedGoal - shootMotor.getVelocity().getValueAsDouble()) < 2.5
         );
     }
 
@@ -215,17 +208,9 @@ public class TestShooter extends SubsystemBase{
         {
             shootMotor.setControl(new CoastOut());
         }
-        else if(flywheelSpeedGoal - shootMotor.getVelocity().getValueAsDouble() < flywheelSpeedGoal * 0.1) {
-            //At speed
-            shootMotor.setControl(new VelocityVoltage(flywheelSpeedGoal).withSlot(1));
-            SmartDashboard.putNumber("Shooter/flywheelSlot", 1);
-        }
-
         else {
-            //Speeding up
-            shootMotor.setControl(new DutyCycleOut(1).withEnableFOC(true));
-            // shootMotor.setControl(new VelocityVoltage(flywheelSpeedGoal).withSlot(0));
-            SmartDashboard.putNumber("Shooter/flywheelSlot", 0);
+            // Cruising
+            shootMotor.setControl(new VelocityVoltage(flywheelSpeedGoal).withSlot(0));
         }
 
         if (flywheelReady()) {
@@ -237,11 +222,15 @@ public class TestShooter extends SubsystemBase{
 
         SmartDashboard.putNumber("Shooter/Distance", targetTracker.getRobotToTargetTranslation().getNorm());
         SmartDashboard.putNumber("Shooter/HoodPreset", hoodGoal);
-        SmartDashboard.putNumber("Shooter/ShootSpeed", shootMotor.getVelocity().getValueAsDouble());
+        SmartDashboard.putNumber("Shooter/shootMotor/voltage", shootMotor.getMotorVoltage().getValueAsDouble());
+        SmartDashboard.putNumber("Shooter/shootMotor/velocity", shootMotor.getVelocity().getValueAsDouble());
+        SmartDashboard.putNumber("Shooter/shootMotor/current", shootMotor.getStatorCurrent().getValueAsDouble());
+        SmartDashboard.putNumber("Shooter/shootMotor/value", shootMotor.get());
         SmartDashboard.putBoolean("Shooter/isAiming", isAiming);
         // SmartDashboard.putNumber("Shooter/hoodActual", hoodMotor.getPosition().getValueAsDouble());
         SmartDashboard.putBoolean("Shooter/hoodReady", hoodReady());
         SmartDashboard.putBoolean("Shooter/flywheelReady", flywheelReady());
+        SmartDashboard.putNumber("Shooter/flywheelSpeedGoal", flywheelSpeedGoal);
         SmartDashboard.putBoolean("Shooter/readyToShoot", readyToShoot());
         SmartDashboard.putNumber("Shooter/feedSet", feedMotor.get());
         SmartDashboard.putNumber("Shooter/feedDutyCycleTarget", feedDutyCycle);
