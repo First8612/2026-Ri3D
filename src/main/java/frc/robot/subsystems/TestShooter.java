@@ -4,9 +4,7 @@ import java.util.Optional;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
-import com.ctre.phoenix6.configs.Slot1Configs;
 import com.ctre.phoenix6.controls.CoastOut;
-import com.ctre.phoenix6.controls.DutyCycleOut;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
@@ -71,11 +69,20 @@ public class TestShooter extends SubsystemBase{
                 .withNeutralMode(NeutralModeValue.Coast)
                 .withPeakReverseDutyCycle(0)
         );
+
+        /*
+         * NOTES: (with two brass flywheels)
+         * At KV of .13 it starts to overrun a little bit.
+         * Adding KP caused recovery to be faster, but at 1 or above (with 0 I and D) 
+         * it would oscillate and not stay in the "ready" range, and you could hear
+         * the belt vibrating.
+         * At KV .125, KP  .8 recovery time is about .5sec
+         */
         shootMotor.getConfigurator().apply(
             new Slot0Configs()
                 // TODO: still iterating on what these values should be
                 .withKV(.125) // this seems right
-                .withKP(.6)
+                .withKP(.8)
                 .withKI(0)
                 .withKD(0)
                 
