@@ -17,6 +17,10 @@ public class FakeMotor {
         return speed;
     }
 
+    public FakeConfig getConfigurator() {
+        return new FakeConfig();
+    }
+
     //Deprecated, will be removed in feb/mar
     static double sqrt(double num) {
         return Math.sqrt(num);
