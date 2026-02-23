@@ -1,16 +1,10 @@
 package frc.robot.subsystems;
 
-import java.lang.StackWalker.Option;
 import java.util.Optional;
-
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
-import com.ctre.phoenix6.configs.HardwareLimitSwitchConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
-import com.ctre.phoenix6.configs.Slot1Configs;
 import com.ctre.phoenix6.controls.CoastOut;
-import com.ctre.phoenix6.controls.DutyCycleOut;
-import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
@@ -23,12 +17,13 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.commands.DixieHornCommand;
 import frc.robot.utils.AimData;
 import frc.robot.utils.TargetTracker;
 
 public class TestShooter extends SubsystemBase{
     TalonFX shootMotor = new TalonFX(41);
-    TalonFX hoodMotor = new TalonFX(42);
+    //TalonFX hoodMotor = new TalonFX(42);
     TalonFX feedMotor = new TalonFX(43);
     Boolean isAiming = false;
     Optional<Double> aimingDistOveride = Optional.empty();
@@ -56,18 +51,18 @@ public class TestShooter extends SubsystemBase{
         var mConfig = new MotorOutputConfigs();
         mConfig.NeutralMode = NeutralModeValue.Brake;
         mConfig.Inverted = InvertedValue.Clockwise_Positive;
-        hoodMotor.getConfigurator().apply(mConfig);
-        hoodMotor.getConfigurator().apply(new CurrentLimitsConfigs().withStatorCurrentLimit(12).withStatorCurrentLimitEnable(true));
+        // hoodMotor.getConfigurator().apply(mConfig);
+        // hoodMotor.getConfigurator().apply(new CurrentLimitsConfigs().withStatorCurrentLimit(12).withStatorCurrentLimitEnable(true));
 
         
         feedMotor.getConfigurator().apply(new CurrentLimitsConfigs().withStatorCurrentLimit(40).withStatorCurrentLimitEnable(false));
         // shootMotor.getConfigurator().apply(new CurrentLimitsConfigs().withStatorCurrentLimit(80).withStatorCurrentLimitEnable(true));
 
-        var slot0Configs = new Slot0Configs();
-        slot0Configs.kP = 10;
-        slot0Configs.kI = 0.1; // no output for integrated error
-        slot0Configs.kD = 0; // A velocity of 1 rps results in 0.1 V output
-        hoodMotor.getConfigurator().apply(slot0Configs);
+        // var slot0Configs = new Slot0Configs();
+        // slot0Configs.kP = 10;
+        // slot0Configs.kI = 0.1; // no output for integrated error
+        // slot0Configs.kD = 0; // A velocity of 1 rps results in 0.1 V output
+        // hoodMotor.getConfigurator().apply(slot0Configs);
 
         shootMotor.getConfigurator().apply(
             new MotorOutputConfigs()
@@ -75,33 +70,36 @@ public class TestShooter extends SubsystemBase{
                 .withNeutralMode(NeutralModeValue.Coast)
                 .withPeakReverseDutyCycle(0)
         );
+
+        /*
+         * NOTES: (with two brass flywheels)
+         * At KV of .13 it starts to overrun a little bit.
+         * Adding KP caused recovery to be faster, but at 1 or above (with 0 I and D) 
+         * it would oscillate and not stay in the "ready" range, and you could hear
+         * the belt vibrating.
+         * At KV .125, KP  .8 recovery time is about .5sec
+         */
         shootMotor.getConfigurator().apply(
             new Slot0Configs()
                 // TODO: still iterating on what these values should be
-                .withKV(.24) // this seems right
-                .withKP(0)
+                .withKV(.125) // this seems right
+                .withKP(.8)
                 .withKI(0)
+                .withKD(0)
                 
-        );
-        shootMotor.getConfigurator().apply(
-            new Slot1Configs()
-                .withKV(.13)
-                .withKP(0)
-                .withKI(0.1)
         );
 
         setDefaultCommand(Commands.runOnce(this::stop, this));
+        DixieHornCommand.enrollSubsystemMotors(this, shootMotor, feedMotor);
 
         SmartDashboard.putData("Shooter/system", this);
-        SmartDashboard.putData("Shooter/shootMotor", shootMotor);
-        SmartDashboard.putData("Shooter/feedMotor", feedMotor);
     }
     
     public void warmup() {
     }
     
     public void inFeed() {
-        feedDutyCycle = 0.25;
+        feedDutyCycle = 0.5;
     }
 
     public void backFeed() {
@@ -137,7 +135,7 @@ public class TestShooter extends SubsystemBase{
         if (flywheelSpeedGoal == 0) return false;
 
         return flywheelReadyDebounce.calculate(
-            Math.abs(Math.abs(flywheelSpeedGoal - shootMotor.getVelocity().getValueAsDouble())) < 2.5
+            Math.abs(flywheelSpeedGoal - shootMotor.getVelocity().getValueAsDouble()) < 2.5
         );
     }
 
@@ -160,25 +158,27 @@ public class TestShooter extends SubsystemBase{
     }
 
     public Command getZeroCommand() {
-        var command = Commands.sequence(
-            Commands.deadline(
-                Commands.waitUntil(() -> Math.abs(hoodMotor.getStatorCurrent().getValueAsDouble()) > 6),
-                Commands.run(() -> hoodMotor.setControl(new DutyCycleOut(-0.1)))
-            ),
-            Commands.runOnce(() -> {
-                hoodMotor.setPosition(-0.01);
-                hoodMotor.setControl(new DutyCycleOut(0));
-                hoodMotor.getConfigurator().apply(new HardwareLimitSwitchConfigs()
-                    .withForwardLimitAutosetPositionEnable(true)
-                    .withForwardLimitAutosetPositionValue(1.18));
-                System.out.println("reset finished");
-            })
-        );
+        // var command = Commands.sequence(
+        //     Commands.deadline(
+        //         Commands.waitUntil(() -> Math.abs(hoodMotor.getStatorCurrent().getValueAsDouble()) > 6),
+        //         Commands.run(() -> hoodMotor.setControl(new DutyCycleOut(-0.1)))
+        //     ),
+        //     Commands.runOnce(() -> {
+        //         hoodMotor.setPosition(-0.01);
+        //         hoodMotor.setControl(new DutyCycleOut(0));
+        //         hoodMotor.getConfigurator().apply(new HardwareLimitSwitchConfigs()
+        //             .withForwardLimitAutosetPositionEnable(true)
+        //             .withForwardLimitAutosetPositionValue(1.18));
+        //         System.out.println("reset finished");
+        //     })
+        // );
 
-        command.addRequirements(this);
+        // command.addRequirements(this);
             
-        return command;
+        // return command;
+        return Commands.none();
     }
+
     //TODO: look at interperable tree map
     
     @Override
@@ -212,22 +212,14 @@ public class TestShooter extends SubsystemBase{
             // flywheelSpeedGoal = 52.5; // max 100rps
         }
 
-        hoodMotor.setControl(new PositionVoltage(0).withSlot(0).withPosition(currHoodGoal));
+        // hoodMotor.setControl(new PositionVoltage(0).withSlot(0).withPosition(currHoodGoal));
         if(flywheelSpeedGoal == 0)
         {
             shootMotor.setControl(new CoastOut());
         }
-        else if(flywheelSpeedGoal - shootMotor.getVelocity().getValueAsDouble() < flywheelSpeedGoal * 0.1) {
-            //At speed
-            shootMotor.setControl(new VelocityVoltage(flywheelSpeedGoal).withSlot(1));
-            SmartDashboard.putNumber("Shooter/flywheelSlot", 1);
-        }
-
         else {
-            //Speeding up
-            shootMotor.setControl(new DutyCycleOut(1).withEnableFOC(true));
-            // shootMotor.setControl(new VelocityVoltage(flywheelSpeedGoal).withSlot(0));
-            SmartDashboard.putNumber("Shooter/flywheelSlot", 0);
+            // Cruising
+            shootMotor.setControl(new VelocityVoltage(flywheelSpeedGoal).withSlot(0));
         }
 
         if (flywheelReady()) {
@@ -239,11 +231,15 @@ public class TestShooter extends SubsystemBase{
 
         SmartDashboard.putNumber("Shooter/Distance", targetTracker.getRobotToTargetTranslation().getNorm());
         SmartDashboard.putNumber("Shooter/HoodPreset", hoodGoal);
-        SmartDashboard.putNumber("Shooter/ShootSpeed", shootMotor.getVelocity().getValueAsDouble());
+        SmartDashboard.putNumber("Shooter/shootMotor/voltage", shootMotor.getMotorVoltage().getValueAsDouble());
+        SmartDashboard.putNumber("Shooter/shootMotor/velocity", shootMotor.getVelocity().getValueAsDouble());
+        SmartDashboard.putNumber("Shooter/shootMotor/current", shootMotor.getStatorCurrent().getValueAsDouble());
+        SmartDashboard.putNumber("Shooter/shootMotor/value", shootMotor.get());
         SmartDashboard.putBoolean("Shooter/isAiming", isAiming);
-        SmartDashboard.putNumber("Shooter/hoodActual", hoodMotor.getPosition().getValueAsDouble());
+        // SmartDashboard.putNumber("Shooter/hoodActual", hoodMotor.getPosition().getValueAsDouble());
         SmartDashboard.putBoolean("Shooter/hoodReady", hoodReady());
         SmartDashboard.putBoolean("Shooter/flywheelReady", flywheelReady());
+        SmartDashboard.putNumber("Shooter/flywheelSpeedGoal", flywheelSpeedGoal);
         SmartDashboard.putBoolean("Shooter/readyToShoot", readyToShoot());
         SmartDashboard.putNumber("Shooter/feedSet", feedMotor.get());
         SmartDashboard.putNumber("Shooter/feedDutyCycleTarget", feedDutyCycle);
